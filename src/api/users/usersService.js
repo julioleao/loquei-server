@@ -18,30 +18,61 @@ const sendErrorsFromDB = (res, dbErrors) => {
     return res.status(400).json({ errors });
 };
 
-const login = (req, res, next) => {
-    const email = req.body.email || '';
-    const password = req.body.password || '';
-
-    User.findOne({ email }, (err, user) => {
-        if (err) {
-            return sendErrorsFromDB(res, err);
-        } else if (user && bcrypt.compareSync(password, user.password)) {
-            const token = jwt.sign({ ...user }, process.env.AUTH_SECRET, {
-                expiresIn: '1 day',
-            });
-            const { name, email, isAdmin } = user;
-            res.json({ name, email, token, isAdmin });
-        } else {
-            return res.status(400).send({ errors: ['Usuário ou Senha inválidos'] });
-        }
-    });
-};
-
 const validateToken = (req, res, next) => {
     const token = req.body.token || '';
 
     jwt.verify(token, process.env.AUTH_SECRET, function (err, decoded) {
         return res.status(200).send({ valid: !err });
+    });
+};
+
+const generateToken = (params = {}) => {
+    return jwt.sign(params, process.env.AUTH_SECRET, {
+        expiresIn: '1 day',
+    });
+};
+
+const login = async (req, res, next) => {
+    const { email, password } = req.body || '';
+    const user = await User.findOne({ email });
+
+    if (!user)
+        return res.status(400).send({ errors: ['Email ou Senha inválidos'] });
+
+    if (!await bcrypt.compareSync(password, user.password))
+        return res.status(400).send({ errors: ['Senha inválida'] });
+
+    res.send({ user, token: generateToken({ id: user.id }) });
+};
+
+const register = async (req, res, next) => {
+    const { name, email, password, confirmPassword } = req.body || '';
+
+    if (!name)
+        return res.status(400).send({ errors: ['Informe seu nome'] });
+
+    if (!email.match(emailRegex))
+        return res.status(400).send({ errors: ['E-mail inválido'] });
+
+    if (!password.match(passwordRegex))
+        return res.status(400).send({
+            errors: ['Senha precisar ter 6 ou mais caracteres'],
+        });
+
+    const passwordHash = bcrypt.hashSync(password, 10);
+
+    if (!bcrypt.compareSync(confirmPassword, passwordHash))
+        return res.status(400).send({ errors: ['Senhas não conferem.'] });
+
+    if (await User.findOne({ email }))
+        return res.status(400).send({ errors: ['Usuário já cadastrado.'] });
+
+    const user = await User.create(req.body);
+    user.password = passwordHash;
+
+    return res.send({
+        user,
+        token: generateToken({ id: user.id })
     });
 };
 
@@ -108,55 +139,4 @@ const resetPassword = async (req, res) => {
     }
 };
 
-const signup = (req, res, next) => {
-    const { name } = req.body || '';
-    const { email } = req.body || '';
-    const { password } = req.body || '';
-    const { confirmPassword } = req.body || '';
-    const { isAdmin } = req.body.isAdmin || false;
-
-    if (!name) {
-        return res.status(400).send({ errors: ['Informe seu nome'] });
-    }
-
-    if (!email.match(emailRegex)) {
-        return res.status(400).send({ errors: ['E-mail inválido'] });
-    }
-
-    if (!password.match(passwordRegex)) {
-        return res.status(400).send({
-            errors: ['Senha precisar ter entre 4-12 caracteres'],
-        });
-    }
-
-    const salt = bcrypt.genSaltSync();
-    const passwordHash = bcrypt.hashSync(password, salt);
-
-    if (!bcrypt.compareSync(confirmPassword, passwordHash)) {
-        return res.status(400).send({ errors: ['Senhas não conferem.'] });
-    }
-
-    User.findOne({ email }, (err, user) => {
-        if (err) {
-            return sendErrorsFromDB(res, err);
-        } else if (user) {
-            return res.status(400).send({ errors: ['Usuário já cadastrado.'] });
-        } else {
-            const newUser = new User({
-                name,
-                email,
-                password: passwordHash,
-                isAdmin,
-            });
-            newUser.save((err) => {
-                if (err) {
-                    return sendErrorsFromDB(res, err);
-                } else {
-                    login(req, res, next);
-                }
-            });
-        }
-    });
-};
-
-module.exports = { login, signup, validateToken, forgotPassword, resetPassword };
+module.exports = { login, register, validateToken, forgotPassword, resetPassword };
