@@ -1,15 +1,6 @@
 const Posts = require('./posts');
-const Auth = require('../../config/auth');
 
 const _ = require('lodash');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-const crypto = require('crypto');
-const express = require('express');
-
-const router = express.Router();
-
-router.use(Auth);
 
 require('dotenv').config();
 
@@ -21,35 +12,105 @@ const sendErrorsFromDB = (res, dbErrors) => {
 };
 
 const postNew = async (req, res) => {
+    const { title, description, price, bedroom, bathroom, garage, condo, iptu } = req.body || '';
     try {
-        const post = await Posts.create(req.body);
+        if (description.length < 100) {
+            const charLeft = 100 - description.length;
+            return res.status(401).send({ error: `Descrição muito curta. Informe mais ${charLeft} caracteres` });
+        }
 
+        if (title.length < 10) {
+            const charLeft = 10 - title.length;
+            return res.status(401).send({ error: `Título muito curto. Informe mais ${charLeft} caracteres` });
+        }
+
+        if (!price)
+            return res.status(401).send({ error: 'Valor do aluguel não informado' });
+
+        if (!bedroom)
+            return res.status(401).send({ error: 'Informe a quantidade de quartos' });
+
+        if (!bathroom)
+            return res.status(401).send({ error: 'Informe a quantidade de banheiros' });
+
+        if (req.user.post >= 3)
+            return res.status(401).send({ error: 'Quantidade máxima de anúncio (3) atingida' });
+
+        if (!req.user.id)
+            return res.status(401).send({ error: 'Faça login ou cadastre-se para publicar' });
+
+        const post = await Posts.create({ ...req.body, user: req.user.id });
         return res.send({ post });
+
     } catch (err) {
-        return res.status(400).send({ error: 'Erro ao criar um novo anúncio' });
+        return res.status(400).send({ error: 'Erro ao criar anúncio' });
     }
 };
 
 const postList = async (req, res) => {
-    res.send({ user: req.userId });
+
+    try {
+        const posts = await Posts.find();
+        return res.send({ posts });
+    } catch (err) {
+        return res.status(400).send({ error: 'Erro ao listar anúncios' });
+    }
 };
 
 const postDetail = async (req, res) => {
-    res.send({ user: req.user });
+    try {
+        const post = await Posts.findById(req.params.postId);
+        if (!post)
+            return res.send({ error: 'Anúncio invalido' });
+        return res.send({ post });
+    } catch (err) {
+        return res.status(400).send({ error: 'Anúncio inválido' });
+    }
 };
 
 const postUpdate = async (req, res) => {
+    const { title, description, price, bedroom, bathroom, garage, condo, iptu } = req.body || '';
     try {
+        if (description.length < 100) {
+            const charLeft = 100 - description.length;
+            return res.status(401).send({ error: `Descrição muito curta. Informe mais ${charLeft} caracteres` });
+        }
 
+        if (title.length < 10) {
+            const charLeft = 10 - title.length;
+            return res.status(401).send({ error: `Título muito curto. Informe mais ${charLeft} caracteres` });
+        }
 
-        return res.send();
+        if (!price)
+            return res.status(401).send({ error: 'Valor do aluguel não informado' });
+
+        if (!bedroom)
+            return res.status(401).send({ error: 'Informe a quantidade de quartos' });
+
+        if (!bathroom)
+            return res.status(401).send({ error: 'Informe a quantidade de banheiros' });
+
+        if (req.user.post >= 3)
+            return res.status(401).send({ error: 'Quantidade máxima de anúncio (3) atingida' });
+
+        if (!req.user.id)
+            return res.status(401).send({ error: 'Faça login ou cadastre-se para publicar' });
+
+        const post = await Posts.findByIdAndUpdate(req.params.postId, { ...req.body }, { new: true });
+        return res.send({ post });
+
     } catch (err) {
-        return res.status(400).send({ error: 'Erro ao atualizar anúncio' });
+        return res.status(400).send({ error: 'Anúncio inválido' });
     }
 };
 
 const postDelete = async (req, res) => {
-    res.send({ user: req.user });
+    try {
+        await Posts.findByIdAndRemove(req.params.postId);
+        return res.send({ message: 'Anúncio removido com sucesso' });
+    } catch (err) {
+        return res.status(400).send({ error: 'Anúncio inválido' });
+    }
 };
 
 module.exports = { postNew, postList, postDetail, postUpdate, postDelete };

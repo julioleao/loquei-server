@@ -3,23 +3,30 @@ require('dotenv').config();
 
 module.exports = (req, res, next) => {
     // CORS preflight request
+    const authHeader = req.headers.authorization;
 
-    /*     const authHeader = req.headers.authorization;
+    if (!authHeader)
+        return res.status(401).send({ error: 'Token não encontrado' });
 
-        if (!authHeader)
-            return res.status(401).send({ error: 'Token inválido ou não informado' });
+    const parts = authHeader.split(' ');
 
-        const parts = authHeader.split(' ');
+    if (!parts.length === 2)
+        return res.status(401).send({ error: 'Token inválido' });
 
-        if (!parts.length === 2)
-            return res.status(401).send({ error: 'Token inválido ou não informado' });
+    const [scheme, token] = parts;
 
-        const [scheme, token] = parts;
+    if (!/^Bearer$/i.test(scheme))
+        return res.status(401).send({ error: 'Token mal formatado' });
 
-        if (!/^Bearer$/i.test(scheme))
-            return res.status(401).send({ error: 'Token inválido ou não informado' });
-     */
-    if (req.method === 'OPTIONS') {
+    jwt.verify(token, process.env.AUTH_SECRET, (err, decoded) => {
+        if (err) return res.status(401).send({ error: 'Token inválido ou não informado' });
+
+        req.user = decoded;
+        return next();
+    });
+
+
+    /* if (req.method === 'OPTIONS') {
         next();
     } else {
         const token =
@@ -37,5 +44,5 @@ module.exports = (req, res, next) => {
                 next();
             }
         });
-    }
+    } */
 };

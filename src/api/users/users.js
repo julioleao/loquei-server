@@ -7,7 +7,8 @@ const usersSchema = new mongoose.Schema(
         email: { type: String, required: true, lowercase: true },
         password: { type: String, min: 6, required: true },
         passwordResetToken: { type: String },
-        passwordResetExpires: { type: Date }
+        passwordResetExpires: { type: Date },
+        postCount: { type: Number, default: 0 }
     },
     {
         timestamps: true,

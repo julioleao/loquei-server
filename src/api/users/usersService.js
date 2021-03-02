@@ -42,7 +42,7 @@ const login = async (req, res, next) => {
     if (!await bcrypt.compareSync(password, user.password))
         return res.status(400).send({ errors: ['Senha inválida'] });
 
-    res.send({ user, token: generateToken({ id: user.id }) });
+    res.send({ user, token: generateToken({ id: user.id, post: user.postCount }) });
 };
 
 const register = async (req, res, next) => {
@@ -72,7 +72,7 @@ const register = async (req, res, next) => {
 
     return res.send({
         user,
-        token: generateToken({ id: user.id })
+        token: generateToken({ id: user.id, post: user.postCount })
     });
 };
 
