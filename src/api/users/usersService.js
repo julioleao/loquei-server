@@ -11,11 +11,11 @@ require('dotenv').config();
 const emailRegex = /\S+@\S+\.\S+/;
 const passwordRegex = /((?=.*$).{6})/;
 
-const sendErrorsFromDB = (res, dbErrors) => {
-    const errors = [];
+const senderrorFromDB = (res, dberror) => {
+    const error = [];
 
-    _.forIn(dbErrors.errors, (error) => errors.push(error.message));
-    return res.status(400).json({ errors });
+    _.forIn(dberror.error, (error) => error.push(error.message));
+    return res.status(400).json({ error });
 };
 
 const validateToken = (req, res, next) => {
@@ -37,10 +37,10 @@ const login = async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (!user)
-        return res.status(400).send({ errors: ['Email ou Senha inválidos'] });
+        return res.status(400).send({ error: 'Email ou Senha inválidos' });
 
     if (!await bcrypt.compareSync(password, user.password))
-        return res.status(400).send({ errors: ['Senha inválida'] });
+        return res.status(400).send({ error: 'Senha inválida' });
 
     res.send({ user, token: generateToken({ id: user.id, post: user.postCount }) });
 };
@@ -49,23 +49,23 @@ const register = async (req, res, next) => {
     const { name, email, password, confirmPassword } = req.body || '';
 
     if (!name)
-        return res.status(400).send({ errors: ['Informe seu nome'] });
+        return res.status(400).send({ error: 'Informe seu nome' });
 
     if (!email.match(emailRegex))
-        return res.status(400).send({ errors: ['E-mail inválido'] });
+        return res.status(400).send({ error: 'E-mail inválido' });
 
     if (!password.match(passwordRegex))
         return res.status(400).send({
-            errors: ['Senha precisar ter 6 ou mais caracteres'],
+            error: 'Senha precisar ter 6 ou mais caracteres',
         });
 
     const passwordHash = bcrypt.hashSync(password, 10);
 
     if (!bcrypt.compareSync(confirmPassword, passwordHash))
-        return res.status(400).send({ errors: ['Senhas não conferem.'] });
+        return res.status(400).send({ error: 'Senhas não conferem.' });
 
     if (await User.findOne({ email }))
-        return res.status(400).send({ errors: ['Usuário já cadastrado.'] });
+        return res.status(400).send({ error: 'Usuário já cadastrado.' });
 
     const user = await User.create(req.body);
     user.password = passwordHash;
