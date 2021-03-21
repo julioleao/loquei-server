@@ -50,7 +50,7 @@ const postNew = async (req, res) => {
         return res.send({ post });
 
     } catch (err) {
-        return res.status(400).send({ errors: ['Erro ao criar anúncio'] });
+        return sendErrorsFromDB(res, err);
     }
 };
 

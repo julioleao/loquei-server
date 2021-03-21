@@ -16,7 +16,7 @@ const postsSchema = new mongoose.Schema(
                 validator: (val) => val.length > 0 && val.length <= 9,
                 message: `Precisa ter no mínimo 1 e máximo 9 fotos.`
             },
-            required: true
+            required: [true, 'Poste ao menos 1 foto']
         },
         mapLocation: {
             lat: { type: Number, required: [true, 'Informe um ponto no mapa'] },
@@ -27,7 +27,7 @@ const postsSchema = new mongoose.Schema(
                 type: String, maxLength: [8, 'Tamanho do CEP {VALUE} inválido'], validate: {
                     validator: /([0-9]{7})\w/,
                     message: props => `O CEP ${props.value} não é um valor válido`
-                }, required: true
+                }, required: [true, 'Informe o CEP']
             },
             street: { type: String, required: [true, 'Informe a rua'] },
             neightborhood: { type: String, required: [true, 'Informe o bairro'] },
@@ -37,7 +37,7 @@ const postsSchema = new mongoose.Schema(
         contact: {
             name: { type: String, required: [true, 'Informe um nome para contato'] },
             email: {
-                type: String, required: true, validate: {
+                type: String, required: [true, 'Informe um e-mail para contato'], validate: {
                     validator: /\S+@\S+\.\S+/,
                     message: props => `O e-mail ${props.value} não é um formato válido`,
                 }

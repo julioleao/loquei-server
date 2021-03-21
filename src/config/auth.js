@@ -6,20 +6,20 @@ module.exports = (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader)
-        return res.status(401).send({ error: 'Token não encontrado' });
+        return res.status(401).send({ errors: ['Token não encontrado'] });
 
     const parts = authHeader.split(' ');
 
     if (!parts.length === 2)
-        return res.status(401).send({ error: 'Token inválido' });
+        return res.status(401).send({ errors: ['Token inválido'] });
 
     const [scheme, token] = parts;
 
     if (!/^Bearer$/i.test(scheme))
-        return res.status(401).send({ error: 'Token mal formatado' });
+        return res.status(401).send({ errors: ['Token mal formatado'] });
 
     jwt.verify(token, process.env.AUTH_SECRET, (err, decoded) => {
-        if (err) return res.status(401).send({ error: 'Token inválido ou não informado' });
+        if (err) return res.status(401).send({ errors: ['Token inválido ou não informado'] });
 
         req.user = decoded;
         return next();
