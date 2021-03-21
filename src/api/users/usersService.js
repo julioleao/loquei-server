@@ -11,11 +11,11 @@ require('dotenv').config();
 const emailRegex = /\S+@\S+\.\S+/;
 const passwordRegex = /((?=.*$).{6})/;
 
-const senderrorFromDB = (res, dberror) => {
-    const error = [];
+const sendErrorsFromDB = (res, dbErrors) => {
+    const errors = [];
 
-    _.forIn(dberror.error, (error) => error.push(error.message));
-    return res.status(400).json({ error });
+    _.forIn(dbErrors.errors, (error) => errors.push(error.message));
+    return res.status(400).json({ errors });
 };
 
 const validateToken = (req, res, next) => {
@@ -37,43 +37,80 @@ const login = async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (!user)
-        return res.status(400).send({ error: 'Email ou Senha inválidos' });
+        return res.status(400).send({ errors: ['E-mail ou senha inválidos'] });
 
     if (!await bcrypt.compareSync(password, user.password))
-        return res.status(400).send({ error: 'Senha inválida' });
+        return res.status(400).send({ errors: ['Senha inválida'] });
 
-    res.send({ user, token: generateToken({ id: user.id, post: user.postCount }) });
+    res.send({ user, token: generateToken({ id: user.id }) });
 };
 
 const register = async (req, res, next) => {
     const { name, email, password, confirmPassword } = req.body || '';
 
-    if (!name)
-        return res.status(400).send({ error: 'Informe seu nome' });
+    try {
+        /* if (!name)
+            return res.status(400).send({ error: 'Informe seu nome' });
 
-    if (!email.match(emailRegex))
-        return res.status(400).send({ error: 'E-mail inválido' });
+        if (!email.match(emailRegex))
+            return res.status(400).send({ error: 'E-mail inválido' });
+    */
+        if (!password.match(passwordRegex))
+            return res.status(400).send({
+                errors: ['Senha mínimo de 6 caracteres'],
+            });
 
-    if (!password.match(passwordRegex))
-        return res.status(400).send({
-            error: 'Senha precisar ter 6 ou mais caracteres',
+
+        const passwordHash = bcrypt.hashSync(password, 10);
+
+
+        if (!bcrypt.compareSync(confirmPassword, passwordHash))
+            return res.status(400).send({ errors: ['Senhas não conferem'] });
+
+        if (await User.findOne({ email }))
+            return res.status(400).send({ errors: ['Usuário já cadastrado'] });
+
+
+        const newUser = new User({
+            name,
+            email,
+            password: passwordHash,
         });
 
-    const passwordHash = bcrypt.hashSync(password, 10);
+        await User.create(newUser);
 
-    if (!bcrypt.compareSync(confirmPassword, passwordHash))
-        return res.status(400).send({ error: 'Senhas não conferem.' });
+        //return res.send({ user, token: generateToken({ id: user.id }) });
 
-    if (await User.findOne({ email }))
-        return res.status(400).send({ error: 'Usuário já cadastrado.' });
+        return login(req, res, next);
 
-    const user = await User.create(req.body);
-    user.password = passwordHash;
+        /* await User.findOne({ email }, (err, user) => {
+            if (user) {
+                return res.status(400).send({ errors: ['Usuário já cadastrado.'] });
+            } else {
+                const newUser = new User({
+                    name,
+                    email,
+                    password: passwordHash,
+                });
+                newUser.save(
+                    login(req, res, next)
 
-    return res.send({
-        user,
-        token: generateToken({ id: user.id, post: user.postCount })
-    });
+                );
+            }
+        });
+ */
+        /* const user = await User.create(req.body);
+
+        return res.send({
+            name,
+            email,
+            password: passwordHash,
+            token: generateToken({ id: user.id, post: user.postCount })
+        }); */
+    } catch (err) {
+        return sendErrorsFromDB(res, err);
+    }
+
 };
 
 const forgotPassword = async (req, res) => {
@@ -82,7 +119,7 @@ const forgotPassword = async (req, res) => {
     try {
         const user = await User.findOne({ email });
         if (!user)
-            return res.status(400).send({ error: 'Usuário não encontrado' });
+            return res.status(400).send({ errors: ['Usuário não encontrado'] });
 
         const token = crypto.randomBytes(20).toString('hex');
         const now = new Date();
@@ -102,12 +139,12 @@ const forgotPassword = async (req, res) => {
             context: { token }
         }, (err) => {
             if (err)
-                return res.status(400).send({ error: 'Erro ao enviar o email, tente novamente' });
+                return res.status(400).send({ errors: ['Erro ao enviar o email, tente novamente'] });
 
             return res.send();
         });
     } catch (err) {
-        res.status(400).send({ error: 'Erro na solicitação, tente novamente' });
+        res.status(400).send({ errors: ['Erro na solicitação, tente novamente'] });
     }
 };
 
@@ -115,18 +152,19 @@ const resetPassword = async (req, res) => {
     const { email, token, password } = req.body;
 
     try {
+
         const user = await User.findOne({ email });
 
         if (!user)
-            return res.status(400).send({ error: 'Usuário não encontrado' });
+            return res.status(400).send({ errors: ['Usuário não encontrado'] });
 
         console.log(user.passwordResetToken);
         if (token !== user.passwordResetToken)
-            return res.status(400).send({ error: 'Token inválido' });
+            return res.status(400).send({ errors: ['Token inválido'] });
 
         const now = new Date();
         if (now > user.passwordResetExpires)
-            return res.status(400).send({ error: 'Tempo do token foi expirado' });
+            return res.status(400).send({ errors: ['Token foi expirado, gere um novo'] });
 
         const salt = bcrypt.genSaltSync();
         const passwordHash = bcrypt.hashSync(password, salt);
@@ -135,7 +173,7 @@ const resetPassword = async (req, res) => {
         await user.save();
         res.send();
     } catch (err) {
-        res.status(400).send({ error: 'Erro na solicitação, tente novamente' });
+        res.status(400).send({ errors: ['Erro na solicitação, tente novamente'] });
     }
 };
 
