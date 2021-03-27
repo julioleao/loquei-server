@@ -19,7 +19,7 @@ module.exports = (req, res, next) => {
         return res.status(401).send({ errors: ['Token mal formatado'] });
 
     jwt.verify(token, process.env.AUTH_SECRET, (err, decoded) => {
-        if (err) return res.status(401).send({ errors: ['Token inválido ou não informado'] });
+        if (err) return res.status(401).send({ errors: ['Acesso expirado, faça login novamente'] });
 
         req.user = decoded;
         return next();

@@ -12,7 +12,7 @@ module.exports = function (server) {
 
     protectedApi.use(auth);
 
-    api.get('/', PostsService.postList);
+    api.get('/list', PostsService.postList);
     api.get('/:postId', PostsService.postDetail);
     protectedApi.post('/create', PostsService.postNew);
     protectedApi.put('/:postId', PostsService.postUpdate);

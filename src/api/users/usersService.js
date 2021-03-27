@@ -49,12 +49,6 @@ const register = async (req, res, next) => {
     const { name, email, password, confirmPassword } = req.body || '';
 
     try {
-        /* if (!name)
-            return res.status(400).send({ error: 'Informe seu nome' });
-
-        if (!email.match(emailRegex))
-            return res.status(400).send({ error: 'E-mail inválido' });
-    */
         if (!password.match(passwordRegex))
             return res.status(400).send({
                 errors: ['Senha mínimo de 6 caracteres'],
@@ -63,13 +57,11 @@ const register = async (req, res, next) => {
 
         const passwordHash = bcrypt.hashSync(password, 10);
 
-
         if (!bcrypt.compareSync(confirmPassword, passwordHash))
             return res.status(400).send({ errors: ['Senhas não conferem'] });
 
         if (await User.findOne({ email }))
             return res.status(400).send({ errors: ['Usuário já cadastrado'] });
-
 
         const newUser = new User({
             name,
@@ -78,39 +70,11 @@ const register = async (req, res, next) => {
         });
 
         await User.create(newUser);
-
-        //return res.send({ user, token: generateToken({ id: user.id }) });
-
         return login(req, res, next);
 
-        /* await User.findOne({ email }, (err, user) => {
-            if (user) {
-                return res.status(400).send({ errors: ['Usuário já cadastrado.'] });
-            } else {
-                const newUser = new User({
-                    name,
-                    email,
-                    password: passwordHash,
-                });
-                newUser.save(
-                    login(req, res, next)
-
-                );
-            }
-        });
- */
-        /* const user = await User.create(req.body);
-
-        return res.send({
-            name,
-            email,
-            password: passwordHash,
-            token: generateToken({ id: user.id, post: user.postCount })
-        }); */
     } catch (err) {
         return sendErrorsFromDB(res, err);
     }
-
 };
 
 const forgotPassword = async (req, res) => {

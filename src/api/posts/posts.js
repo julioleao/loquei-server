@@ -4,13 +4,18 @@ const mongoose = restful.mongoose;
 const postsSchema = new mongoose.Schema(
     {
         title: { type: String, minLength: [10, 'Título muito curto, mínimo de 10 caracteres'], required: [true, 'A publicação precisa de um título'] },
-        description: { type: String, minLength: [100, `Descrição muito curta, mínimo de 100 caracteres`], required: [true, 'Descreva o imóvel, por favor'] },
+        description: {
+            type: String, required: [true, 'Descreva o imóvel, por favor'], validate: {
+                validator: (val) => val.length >= 100,
+                message: props => `Descrição muito curta, ainda faltam ${100 - props.value.length} caracteres`
+            }
+        },
         price: { type: Number, required: [true, 'Informe o valor do aluguel'] },
         iptu: { type: Number, default: 0 },
         condo: { type: Number, default: 0 },
         bedroom: { type: Number, required: [true, 'Informe a quantidade de quartos'] },
         bathroom: { type: Number, required: [true, 'Informe a quantidade de banheiros'] },
-        garage: { type: Number, default: 0 },
+        garage: { type: Number, required: [true, 'Informe a quantidade de vagas de garagem'] },
         pictures: {
             type: [String], validate: {
                 validator: (val) => val.length > 0 && val.length <= 9,
@@ -30,7 +35,7 @@ const postsSchema = new mongoose.Schema(
                 }, required: [true, 'Informe o CEP']
             },
             street: { type: String, required: [true, 'Informe a rua'] },
-            neightborhood: { type: String, required: [true, 'Informe o bairro'] },
+            neighborhood: { type: String, required: [true, 'Informe o bairro'] },
             city: { type: String, required: [true, 'Informe a cidade'] },
             state: { type: String, required: [true, 'Informe o estado'] },
         },

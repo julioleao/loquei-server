@@ -13,41 +13,14 @@ const sendErrorsFromDB = (res, dbErrors) => {
 };
 
 const postNew = async (req, res) => {
-    const { title, description, price, bedroom, bathroom, garage, condo, iptu } = req.body || '';
     const user = await Users.findById(req.user.id);
     try {
-        /* if (description.length < 100) {
-            const charLeft = 100 - description.length;
-            return res.status(401).send({ error: `Descrição muito curta. Informe mais ${charLeft} caracteres` });
-        }
-
-         if (title.length < 10) {
-             const charLeft = 10 - title.length;
-             return res.status(401).send({ error: `Título muito curto. Informe mais ${charLeft} caracteres` });
-         }
-
-        if (!price)
-            return res.status(401).send({ error: 'Valor do aluguel não informado' });
-
-        if (!bedroom)
-            return res.status(401).send({ error: 'Informe a quantidade de quartos' });
-
-        if (!bathroom)
-            return res.status(401).send({ error: 'Informe a quantidade de banheiros' });
-
-        if (req.user.post >= 3)
-            return res.status(401).send({ error: 'Quantidade máxima de anúncio (3) atingida' });
-
-        if (!req.user.id)
-            return res.status(401).send({ error: 'Faça login ou cadastre-se para publicar' }); */
-
         if (user.postCount >= 3) {
             return res.status(400).send({ errors: ['Quantidade máxima de publicação atingida'] });
         }
-
         const post = await Posts.create({ ...req.body, ownerId: req.user.id });
         await Users.findByIdAndUpdate(req.user.id, { $inc: { 'postCount': 1 } }, { new: true });
-        return res.send({ post });
+        res.status(201).json(post);
 
     } catch (err) {
         return sendErrorsFromDB(res, err);
@@ -55,13 +28,13 @@ const postNew = async (req, res) => {
 };
 
 const postList = async (req, res) => {
+    await Posts.find({}, (err, docs) => {
+        if (!err)
+            res.json(docs);
+        else
+            res.status(400).send({ errors: ['Erro ao listar anúncios'] });
+    });
 
-    try {
-        const posts = await Posts.find();
-        return res.send({ posts });
-    } catch (err) {
-        return res.status(400).send({ errors: ['Erro ao listar anúncios'] });
-    }
 };
 
 const postDetail = async (req, res) => {
@@ -76,39 +49,12 @@ const postDetail = async (req, res) => {
 };
 
 const postUpdate = async (req, res) => {
-    const { title, description, price, bedroom, bathroom, garage, condo, iptu } = req.body || '';
     try {
-        /* if (description.length < 100) {
-            const charLeft = 100 - description.length;
-            return res.status(401).send({ error: `Descrição muito curta. Informe mais ${charLeft} caracteres` });
-        }
-
-        if (title.length < 10) {
-            const charLeft = 10 - title.length;
-            return res.status(401).send({ error: `Título muito curto. Informe mais ${charLeft} caracteres` });
-        }
-
-        if (!price)
-            return res.status(401).send({ error: 'Valor do aluguel não informado' });
-
-        if (!bedroom)
-            return res.status(401).send({ error: 'Informe a quantidade de quartos' });
-
-        if (!bathroom)
-            return res.status(401).send({ error: 'Informe a quantidade de banheiros' });
-
-        if (req.user.post >= 3)
-            return res.status(401).send({ error: 'Quantidade máxima de anúncio (3) atingida' });
-
-        if (!req.user.id)
-            return res.status(401).send({ error: 'Faça login ou cadastre-se para publicar' }); */
-
         const post = await Posts.findByIdAndUpdate(req.params.postId, { ...req.body }, { new: true, runValidators: true, context: 'query' });
         return res.send({ post });
 
     } catch (err) {
         return sendErrorsFromDB(res, err);
-        //return res.status(400).send({ error: 'Anúncio inválido' });
     }
 };
 
