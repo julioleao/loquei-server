@@ -25,7 +25,7 @@ const postsSchema = new mongoose.Schema(
         },
         mapLocation: {
             lat: { type: Number, required: [true, 'Informe um ponto no mapa'] },
-            lon: { type: Number, required: [true, 'Informe um ponto no mapa'] },
+            lon: { type: Number },
         },
         address: {
             cep: {

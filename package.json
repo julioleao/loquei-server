@@ -20,16 +20,13 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "express-query-int": "^1.0.1",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.20",
-    "moment": "^2.29.1",
     "mongoose": "^5.11.15",
     "mongoose-paginate": "^5.0.3",
     "node-restful": "^0.2.6",
     "nodemailer": "^6.5.0",
-    "nodemailer-express-handlebars": "^4.0.0",
-    "pm2": "^4.5.0"
+    "nodemailer-express-handlebars": "^4.0.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.4"

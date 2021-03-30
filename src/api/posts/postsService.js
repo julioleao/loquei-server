@@ -40,8 +40,7 @@ const postList = async (req, res) => {
 const postDetail = async (req, res) => {
     try {
         const post = await Posts.findById(req.params.postId);
-        if (!post)
-            return res.send({ errors: ['Anúncio invalido'] });
+
         return res.send({ post });
     } catch (err) {
         return res.status(400).send({ errors: ['Anúncio inválido'] });
