@@ -6,8 +6,8 @@ const server = express();
 
 const port = 3003;
 
-server.use(bodyParser.urlencoded({ extended: true }));
-server.use(bodyParser.json());
+server.use(express.urlencoded({ extended: true, limit: '10mb' }));
+server.use(express.json({ limit: '10mb' }));
 server.use(cors());
 
 server.listen(process.env.PORT || port, () => {

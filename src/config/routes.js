@@ -13,10 +13,12 @@ module.exports = function (server) {
     protectedApi.use(auth);
 
     api.get('/list', PostsService.postList);
-    api.get('/:postId', PostsService.postDetail);
+
     protectedApi.post('/create', PostsService.postNew);
+    protectedApi.get('/profile/posts', PostsService.postsByUser);
     protectedApi.put('/:postId', PostsService.postUpdate);
     protectedApi.delete('/:postId', PostsService.postDelete);
+    api.get('/:postId', PostsService.postDetail);
 
     api.post('/login', UsersService.login);
     api.post('/register', UsersService.register);

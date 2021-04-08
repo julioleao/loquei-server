@@ -47,6 +47,17 @@ const postDetail = async (req, res) => {
     }
 };
 
+const postsByUser = async (req, res) => {
+
+    await Posts.find({ ownerId: req.body.userId }, (err, docs) => {
+        console.log(req.body);
+        if (!err)
+            res.json(docs);
+        else
+            res.status(400).send({ errors: ['Não há conteúdo publicado'] });
+    });
+};
+
 const postUpdate = async (req, res) => {
     try {
         const post = await Posts.findByIdAndUpdate(req.params.postId, { ...req.body }, { new: true, runValidators: true, context: 'query' });
@@ -67,4 +78,4 @@ const postDelete = async (req, res) => {
     }
 };
 
-module.exports = { postNew, postList, postDetail, postUpdate, postDelete };
+module.exports = { postNew, postList, postDetail, postUpdate, postDelete, postsByUser };
