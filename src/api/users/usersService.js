@@ -1,5 +1,7 @@
 const User = require('./users');
+const path = require('path');
 const mailer = require('../../config/mailer');
+const sgMail = require('@sendgrid/mail');
 
 const _ = require('lodash');
 const jwt = require('jsonwebtoken');
@@ -11,6 +13,7 @@ require('dotenv').config();
 const emailRegex = /\S+@\S+\.\S+/;
 const passwordRegex = /((?=.*$).{6})/;
 
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const sendErrorsFromDB = (res, dbErrors) => {
     const errors = [];
 
@@ -54,7 +57,6 @@ const register = async (req, res, next) => {
                 errors: ['Senha mínimo de 6 caracteres'],
             });
 
-
         const passwordHash = bcrypt.hashSync(password, 10);
 
         if (!bcrypt.compareSync(confirmPassword, passwordHash))
@@ -79,7 +81,6 @@ const register = async (req, res, next) => {
 
 const forgotPassword = async (req, res) => {
     const { email } = req.body;
-
     try {
         const user = await User.findOne({ email });
         if (!user)
@@ -98,15 +99,15 @@ const forgotPassword = async (req, res) => {
 
         mailer.sendMail({
             to: email,
-            from: 'no_reply@loquei.com',
+            from: process.env.SENDGRID_SENDER,
             template: 'forgot_password',
-            context: { token }
-        }, (err) => {
-            if (err)
-                return res.status(400).send({ errors: ['Erro ao enviar o email, tente novamente'] });
-
-            return res.send();
-        });
+            subject: 'Recuperar senha',
+            context: { token },
+        })
+            .then(() => res.send({ message: 'E-mail enviado com sucesso!' }))
+            .catch((err) => {
+                res.status(400).send({ errors: ['Erro ao enviar o email, tente novamente'] });
+            });
     } catch (err) {
         res.status(400).send({ errors: ['Erro na solicitação, tente novamente'] });
     }
