@@ -39,7 +39,7 @@ const postList = async (req, res) => {
 
 const postDetail = async (req, res) => {
     try {
-        const post = await Posts.findById(req.params.postId);
+        const post = await Posts.findById(req.params.postId).select('+pictures');
 
         return res.send({ post });
     } catch (err) {

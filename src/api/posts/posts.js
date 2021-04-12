@@ -16,12 +16,14 @@ const postsSchema = new mongoose.Schema(
         bedroom: { type: Number, required: [true, 'Informe a quantidade de quartos'] },
         bathroom: { type: Number, required: [true, 'Informe a quantidade de banheiros'] },
         garage: { type: Number, required: [true, 'Informe a quantidade de vagas de garagem'] },
+        thumbnail: { type: String },
         pictures: {
             type: [String], validate: {
                 validator: (val) => val.length > 0 && val.length <= 9,
                 message: `Precisa ter no mínimo 1 e máximo 9 fotos.`
             },
-            required: [true, 'Poste ao menos 1 foto']
+            required: [true, 'Poste ao menos 1 foto'],
+            select: false
         },
         mapLocation: {
             lat: { type: Number, required: [true, 'Informe um ponto no mapa'] },
