@@ -12,4 +12,3 @@ module.exports = mongoose.connect(url, {
     useFindAndModify: false,
 });
 
-console.log(url);

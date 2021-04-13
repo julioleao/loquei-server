@@ -50,7 +50,6 @@ const postDetail = async (req, res) => {
 const postsByUser = async (req, res) => {
 
     await Posts.find({ ownerId: req.body.userId }, (err, docs) => {
-        console.log(req.body);
         if (!err)
             res.json(docs);
         else
