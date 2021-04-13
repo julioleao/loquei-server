@@ -81,6 +81,7 @@ const register = async (req, res, next) => {
 
 const forgotPassword = async (req, res) => {
     const { email } = req.body;
+
     try {
         const user = await User.findOne({ email });
         if (!user)
@@ -123,7 +124,6 @@ const resetPassword = async (req, res) => {
         if (!user)
             return res.status(400).send({ errors: ['Usuário não encontrado'] });
 
-        console.log(user.passwordResetToken);
         if (token !== user.passwordResetToken)
             return res.status(400).send({ errors: ['Token inválido'] });
 
@@ -136,7 +136,7 @@ const resetPassword = async (req, res) => {
 
         user.password = passwordHash;
         await user.save();
-        res.send();
+        res.send({ message: 'Senha alterada com sucesso!' });
     } catch (err) {
         res.status(400).send({ errors: ['Erro na solicitação, tente novamente'] });
     }
