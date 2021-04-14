@@ -15,7 +15,7 @@ module.exports = function (server) {
     api.get('/list', PostsService.postList);
 
     protectedApi.post('/create', PostsService.postNew);
-    protectedApi.get('/profile/posts', PostsService.postsByUser);
+    protectedApi.post('/profile/posts', PostsService.postsByUser);
     protectedApi.put('/:postId', PostsService.postUpdate);
     protectedApi.delete('/:postId', PostsService.postDelete);
     api.get('/:postId', PostsService.postDetail);
