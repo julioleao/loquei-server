@@ -20,7 +20,7 @@ const postNew = async (req, res) => {
         }
         const post = await Posts.create({ ...req.body, ownerId: req.user.id });
         await Users.findByIdAndUpdate(req.user.id, { $inc: { 'postCount': 1 } }, { new: true });
-        res.status(201).json(post);
+        return res.send({ message: 'Cadastro realizado com sucesso' });
 
     } catch (err) {
         return sendErrorsFromDB(res, err);
@@ -69,7 +69,7 @@ const postUpdate = async (req, res) => {
 
 const postDelete = async (req, res) => {
     try {
-        await Posts.findByIdAndRemove(req.params.postId);
+        await Posts.findByIdAndRemove(req.body.postId);
         await Users.findByIdAndUpdate(req.user.id, { $inc: { 'postCount': -1 } }, { new: true });
         return res.send({ message: 'Anúncio removido com sucesso' });
     } catch (err) {

@@ -17,7 +17,7 @@ module.exports = function (server) {
     protectedApi.post('/create', PostsService.postNew);
     protectedApi.post('/profile/posts', PostsService.postsByUser);
     protectedApi.put('/:postId', PostsService.postUpdate);
-    protectedApi.delete('/:postId', PostsService.postDelete);
+    protectedApi.delete('/profile/posts/delete', PostsService.postDelete);
     api.get('/:postId', PostsService.postDetail);
 
     api.post('/login', UsersService.login);
