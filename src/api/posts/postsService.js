@@ -54,13 +54,13 @@ const postsByUser = async (req, res) => {
             res.json(docs);
         else
             res.status(400).send({ errors: ['Não há conteúdo publicado'] });
-    });
+    }).select('+pictures');
 };
 
 const postUpdate = async (req, res) => {
     try {
-        const post = await Posts.findByIdAndUpdate(req.params.postId, { ...req.body }, { new: true, runValidators: true, context: 'query' });
-        return res.send({ post });
+        const post = await Posts.findByIdAndUpdate(req.body._id, { ...req.body }, { new: true, runValidators: true, context: 'query' });
+        return res.send({ message: 'Anúncio atualizado com sucesso' });
 
     } catch (err) {
         return sendErrorsFromDB(res, err);
