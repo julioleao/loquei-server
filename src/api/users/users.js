@@ -1,5 +1,4 @@
-const restful = require('node-restful');
-const mongoose = restful.mongoose;
+const mongoose = require('mongoose');
 
 const usersSchema = new mongoose.Schema(
     {
@@ -20,4 +19,4 @@ const usersSchema = new mongoose.Schema(
     }
 );
 
-module.exports = restful.model('users', usersSchema);
+module.exports = mongoose.model('users', usersSchema);

@@ -1,5 +1,4 @@
-const restful = require('node-restful');
-const mongoose = restful.mongoose;
+const mongoose = require('mongoose');
 
 const postsSchema = new mongoose.Schema(
     {
@@ -52,7 +51,7 @@ const postsSchema = new mongoose.Schema(
             phone: {
                 type: String, validate: {
                     validator: /([0-9]{9,10})\w/,
-                    message: props => `O telefonce ${props.value} não é um número válido`,
+                    message: props => `O telefone ${props.value} não é um número válido`,
                 },
                 required: [true, 'Número de telefone obrigatório']
             },
@@ -64,4 +63,4 @@ const postsSchema = new mongoose.Schema(
     },
 );
 
-module.exports = restful.model('posts', postsSchema);
+module.exports = mongoose.model('posts', postsSchema);

@@ -1,11 +1,21 @@
+const compression = require('compression');
+const helmet = require('helmet');
 const express = require('express');
+const path = require('path');
 const auth = require('./auth');
 const PostsService = require('../api/posts/postsService');
 const UsersService = require('../api/users/usersService');
+const cacheTime = 86400000 * 30;
 
 module.exports = function (server) {
     const api = express.Router();
     const protectedApi = express.Router();
+
+    server.use(express.static(path.join(__dirname, 'public'), {
+        maxAge: cacheTime
+    }));
+    server.use(helmet());
+    server.use(compression());
 
     server.use('/api', api);
     server.use('/api', protectedApi);
