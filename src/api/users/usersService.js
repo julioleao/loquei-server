@@ -98,7 +98,7 @@ const forgotPassword = async (req, res) => {
             }
         });
 
-        mailer.sendMail({
+        await mailer.sendMail({
             to: email,
             from: process.env.SENDGRID_SENDER,
             template: 'forgot_password',
