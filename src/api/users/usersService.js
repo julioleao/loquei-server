@@ -79,10 +79,6 @@ const register = async (req, res, next) => {
     }
 };
 
-const sendMail = async () => {
-
-};
-
 const forgotPassword = async (req, res) => {
     const { email } = req.body;
 
