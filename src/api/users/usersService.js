@@ -79,6 +79,10 @@ const register = async (req, res, next) => {
     }
 };
 
+const sendMail = async () => {
+
+};
+
 const forgotPassword = async (req, res) => {
     const { email } = req.body;
 
@@ -98,17 +102,25 @@ const forgotPassword = async (req, res) => {
             }
         });
 
-        await mailer.sendMail({
+        const mailOptions = {
             to: email,
             from: process.env.SENDGRID_SENDER,
             template: 'forgot_password',
             subject: 'Recuperar senha',
             context: { token },
-        })
-            .then(() => res.send({ message: 'E-mail enviado com sucesso!' }))
-            .catch((err) => {
+        };
+
+
+        mailer.sendMail(mailOptions, (error) => {
+            if (error) {
                 res.status(400).send({ errors: ['Erro ao enviar o email, tente novamente'] });
-            });
+                console.log(error);
+            }
+            console.log('OK');
+            res.send({ message: 'E-mail enviado com sucesso!' });
+
+        });
+
     } catch (err) {
         res.status(400).send({ errors: ['Erro na solicitação, tente novamente'] });
     }
