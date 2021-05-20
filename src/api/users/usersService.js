@@ -2,7 +2,9 @@ const User = require('./users');
 const path = require('path');
 const mailer = require('../../config/mailer');
 const sgMail = require('@sendgrid/mail');
-
+const nodemailer = require('nodemailer');
+const hbs = require('nodemailer-express-handlebars');
+const nodemailerSendgrid = require('nodemailer-sendgrid');
 const _ = require('lodash');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
@@ -12,6 +14,21 @@ require('dotenv').config();
 
 const emailRegex = /\S+@\S+\.\S+/;
 const passwordRegex = /((?=.*$).{6})/;
+
+const transport = nodemailer.createTransport(
+    nodemailerSendgrid({
+        apiKey: process.env.SENDGRID_API_KEY
+    })
+);
+
+transport.use('compile', hbs({
+    viewEngine: {
+        defaultLayout: undefined,
+        partialsDir: path.resolve('./src/resources/mail/')
+    },
+    viewPath: path.resolve('./src/resources/mail/'),
+    extName: '.html',
+}));
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const sendErrorsFromDB = (res, dbErrors) => {
@@ -106,19 +123,27 @@ const forgotPassword = async (req, res) => {
             context: { token },
         };
 
-
-        mailer.sendMail(mailOptions, (error) => {
+        transport.sendMail(mailOptions, (error) => {
             if (error) {
-                res.status(400).send({ errors: ['Erro ao enviar o email, tente novamente'] });
                 console.log(error);
+                return res.status(400).send({ errors: ['Erro ao enviar o email, tente novamente'] });
             }
-            console.log('OK');
-            res.send({ message: 'E-mail enviado com sucesso!' });
-
+            return res.send({ message: 'E-mail enviado com sucesso!' });
         });
 
+
+        /*  mailer.sendMail(mailOptions, (error) => {
+             if (error) {
+                 res.status(400).send({ errors: ['Erro ao enviar o email, tente novamente'] });
+                 console.log(error);
+             }
+             console.log('OK');
+             res.send({ message: 'E-mail enviado com sucesso!' });
+
+         }); */
+
     } catch (err) {
-        res.status(400).send({ errors: ['Erro na solicitação, tente novamente'] });
+        return res.status(400).send({ errors: ['Erro na solicitação, tente novamente'] });
     }
 };
 
